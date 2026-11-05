@@ -34,6 +34,7 @@ READY PLAYER ONE?
 Experience the game directly in your browser.
 
 ▶ LAUNCH CYBER // SNAKE
+https://mitkis.github.io/cyber-snake-2099/
 
 No installation. No downloads. Just play.
 
