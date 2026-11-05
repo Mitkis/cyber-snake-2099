@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CYBER SNAKE // PROTOCOL 2099</title>
+  <meta name="description" content="A futuristic neon arcade snake game with multiple modes, power-ups, custom audio, and cyber aesthetics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body tabindex="0">
+  <!-- CRT & Cyber Overlay Effects -->
+  <div class="cyber-scanlines" id="cyberScanlines"></div>
+  <div class="cyber-vignette"></div>
+  <div class="cyber-grid-bg"></div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Container -->
+  <div class="arcade-cabinet">
+    <!-- Top Header / Marquee Bar -->
+    <header class="arcade-header">
+      <div class="brand-badge">
+        <span class="brand-glyph">◈</span>
+        <span class="brand-text">CYBER//SNAKE</span>
+        <span class="brand-ver">v2.099</span>
+      </div>
+      <div class="header-controls">
+        <button id="quickSoundBtn" class="icon-btn" title="Toggle Sound (M)" aria-label="Toggle Sound">
+          <span class="btn-icon">🔊</span>
+        </button>
+        <button id="quickMusicBtn" class="icon-btn" title="Toggle Music (N)" aria-label="Toggle Music">
+          <span class="btn-icon">🎵</span>
+        </button>
+        <button id="quickPauseBtn" class="icon-btn hidden" title="Pause Game (P / Esc)" aria-label="Pause Game">
+          <span class="btn-icon">⏸</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Game Board & Stage Viewport -->
+    <main class="arcade-stage">
+      <!-- In-Game HUD (Visible during gameplay) -->
+      <div class="game-hud hidden" id="gameHud">
+        <div class="hud-panel hud-left">
+          <div class="hud-stat">
+            <span class="stat-label">SCORE</span>
+            <span class="stat-value neon-cyan" id="hudScore">0</span>
+          </div>
+          <div class="hud-stat">
+            <span class="stat-label">MULTIPLIER</span>
+            <span class="stat-value neon-magenta" id="hudMultiplier">x1.0</span>
+          </div>
+        </div>
+
+        <div class="hud-panel hud-center" id="hudCenterInfo">
+          <div class="sector-indicator" id="sectorDisplay">SECTOR 01</div>
+          <div class="time-attack-clock hidden" id="timeAttackClock">TIME: 60s</div>
+        </div>
+
+        <div class="hud-panel hud-right">
+          <div class="hud-stat">
+            <span class="stat-label">HI-SCORE</span>
+            <span class="stat-value neon-green" id="hudHiScore">0</span>
+          </div>
+          <div class="hud-stat">
+            <span class="stat-label">ENERGY / LEN</span>
+            <span class="stat-value neon-yellow" id="hudLength">3</span>
+          </div>
+        </div>
+
+        <!-- Active Power-ups Bar -->
+        <div class="active-powerups-bar" id="activePowerupsBar">
+          <!-- Dynamically populated with active buffs & timers -->
+        </div>
+      </div>
+
+      <!-- Canvas Wrap for High-DPI Matrix Rendering -->
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+      </div>
+
+      <!-- Mobile Touch On-Screen Controls -->
+      <div class="touch-controls-container" id="touchControlsContainer">
+        <div class="dpad">
+          <button class="dpad-btn dpad-up" data-dir="UP" aria-label="Move Up">▲</button>
+          <div class="dpad-mid-row">
+            <button class="dpad-btn dpad-left" data-dir="LEFT" aria-label="Move Left">◀</button>
+            <div class="dpad-center">◈</div>
+            <button class="dpad-btn dpad-right" data-dir="RIGHT" aria-label="Move Right">▶</button>
+          </div>
+          <button class="dpad-btn dpad-down" data-dir="DOWN" aria-label="Move Down">▼</button>
+        </div>
+        <div class="touch-actions">
+          <button class="action-btn boost-btn" id="touchBoostBtn" aria-label="Turbo Boost">
+            <span class="action-label">BOOST</span>
+            <span class="action-sub">HOLD</span>
+          </button>
+          <button class="action-btn pause-btn" id="touchPauseBtn" aria-label="Pause Game">
+            <span class="action-label">PAUSE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- OVERLAY SCREENS -->
+
+      <!-- 1. Start / Main Menu Screen -->
+      <div class="overlay-screen active" id="startScreen">
+        <div class="terminal-card">
+          <div class="card-decor-tl">+</div>
+          <div class="card-decor-tr">+</div>
+          <div class="card-decor-bl">+</div>
+          <div class="card-decor-br">+</div>
+
+          <div class="cyber-logo-box">
+            <div class="glitch-title" data-text="CYBER // SNAKE">CYBER // SNAKE</div>
+            <p class="cyber-subtitle">NEO-ARCADE NEURAL PROTOCOL</p>
+          </div>
+
+          <div class="mode-select-group">
+            <label class="section-tag">// SELECT GAME MODE</label>
+            <div class="mode-chips">
+              <button class="mode-chip active" data-mode="classic">
+                <span class="chip-name">CLASSIC</span>
+                <span class="chip-desc">Pure Arcade Arena</span>
+              </button>
+              <button class="mode-chip" data-mode="obstacles">
+                <span class="chip-name">OBSTACLES</span>
+                <span class="chip-desc">Laser Pillars & Hazards</span>
+              </button>
+              <button class="mode-chip" data-mode="campaign">
+                <span class="chip-name">CAMPAIGN</span>
+                <span class="chip-desc">6 Cyber Sectors</span>
+              </button>
+              <button class="mode-chip" data-mode="timeAttack">
+                <span class="chip-name">TIME ATTACK</span>
+                <span class="chip-desc">Beat The Overclock</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="difficulty-select-group">
+            <label class="section-tag">// DIFFICULTY FREQUENCY</label>
+            <div class="diff-chips">
+              <button class="diff-chip" data-diff="easy">CASUAL</button>
+              <button class="diff-chip active" data-diff="normal">STANDARD</button>
+              <button class="diff-chip" data-diff="hard">CYBER</button>
+              <button class="diff-chip" data-diff="insane">OVERCLOCK</button>
+            </div>
+          </div>
+
+          <div class="menu-action-buttons">
+            <button id="btnPlayGame" class="arcade-btn primary-btn pulse-glow">
+              <span class="btn-flare"></span>
+              <span class="btn-text">INITIALIZE RUN</span>
+            </button>
+            <div class="sub-actions">
+              <button id="btnOpenHowToPlay" class="arcade-btn secondary-btn">
+                <span>MANUAL</span>
+              </button>
+              <button id="btnOpenAchievements" class="arcade-btn secondary-btn">
+                <span>ACHIEVEMENTS</span>
+              </button>
+              <button id="btnOpenSettings" class="arcade-btn secondary-btn">
+                <span>SETTINGS</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="terminal-footer">
+            <div class="dev-credit">
+              <span class="dev-prefix">// ARCHITECT:</span>
+              <span class="dev-name">DEVELOPED BY YASSIN MITKIS</span>
+            </div>
+            <span class="control-hint">ARROWS / WASD TO NAVIGATE • SPACE TO BOOST</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Pause Overlay -->
+      <div class="overlay-screen" id="pauseScreen">
+        <div class="terminal-card sm-card">
+          <div class="card-decor-tl">+</div>
+          <div class="card-decor-tr">+</div>
+          <h2 class="modal-title neon-cyan">SYSTEM PAUSED</h2>
+          <p class="modal-sub">NEURAL LINK SUSPENDED</p>
+
+          <div class="pause-menu-buttons">
+            <button id="btnResume" class="arcade-btn primary-btn">RESUME PROTOCOL</button>
+            <button id="btnRestartFromPause" class="arcade-btn secondary-btn">RESTART RUN</button>
+            <button id="btnSettingsFromPause" class="arcade-btn secondary-btn">SETTINGS</button>
+            <button id="btnQuitToMenu" class="arcade-btn danger-btn">ABORT TO MENU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Game Over Screen -->
+      <div class="overlay-screen" id="gameOverScreen">
+        <div class="terminal-card">
+          <div class="card-decor-tl">+</div>
+          <div class="card-decor-tr">+</div>
+          <div class="game-over-banner">
+            <h2 class="glitch-text-danger" data-text="SYSTEM COMPROMISED">SYSTEM COMPROMISED</h2>
+            <p class="game-over-reason" id="deathReasonText">COLLISION DETECTED</p>
+          </div>
+
+          <div class="stats-summary-grid">
+            <div class="stat-box primary-stat">
+              <span class="stat-box-label">FINAL SCORE</span>
+              <span class="stat-box-val neon-cyan" id="goFinalScore">0</span>
+              <div class="new-record-tag hidden" id="goNewRecordTag">★ NEW RECORD ★</div>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box-label">BEST SCORE</span>
+              <span class="stat-box-val neon-green" id="goBestScore">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box-label">ENERGY CORES</span>
+              <span class="stat-box-val neon-yellow" id="goFoodEaten">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box-label">PEAK LENGTH</span>
+              <span class="stat-box-val neon-magenta" id="goPeakLength">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box-label">SURVIVAL TIME</span>
+              <span class="stat-box-val" id="goSurvivalTime">00:00</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-box-label">POWER-UPS TAKEN</span>
+              <span class="stat-box-val" id="goPowerupsCount">0</span>
+            </div>
+          </div>
+
+          <div class="menu-action-buttons">
+            <button id="btnRestartGame" class="arcade-btn primary-btn pulse-glow">
+              <span class="btn-flare"></span>
+              <span class="btn-text">RE-INITIALIZE (RESTART)</span>
+            </button>
+            <div class="sub-actions go-sub-actions">
+              <button id="btnBackToMenuFromGameOver" class="arcade-btn secondary-btn">
+                <span>MAIN MENU</span>
+              </button>
+              <button id="btnShareScore" class="arcade-btn secondary-btn">
+                <span>TRANSMISSION</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="terminal-footer go-footer">
+            <div class="dev-credit discreet">
+              <span class="dev-name">DEVELOPED BY YASSIN MITKIS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Sector Cleared Modal (Campaign Mode) -->
+      <div class="overlay-screen" id="sectorClearScreen">
+        <div class="terminal-card sm-card">
+          <div class="card-decor-tl">+</div>
+          <div class="card-decor-tr">+</div>
+          <h2 class="modal-title neon-green">SECTOR OVERRIDDEN</h2>
+          <p class="modal-sub" id="sectorClearSubText">FIREWALL BYPASSED SUCCESSFULLY</p>
+
+          <div class="sector-clear-stats">
+            <div class="sc-row">
+              <span>SCORE REWARD:</span>
+              <span class="neon-cyan" id="sectorScoreReward">+1000 PTS</span>
+            </div>
+            <div class="sc-row">
+              <span>NEXT SECTOR:</span>
+              <span class="neon-magenta" id="nextSectorName">SECTOR 02: FIREWALL MATRIX</span>
+            </div>
+          </div>
+
+          <div class="pause-menu-buttons">
+            <button id="btnNextSector" class="arcade-btn primary-btn pulse-glow">WARP TO NEXT SECTOR</button>
+            <button id="btnSectorMenu" class="arcade-btn secondary-btn">MAIN MENU</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Instructions / Manual Screen -->
+      <div class="overlay-screen" id="howToPlayScreen">
+        <div class="terminal-card lg-card">
+          <div class="card-header-bar">
+            <h2 class="modal-title neon-cyan">// SYSTEM MANUAL & PROTOCOLS</h2>
+            <button class="close-modal-btn" data-close="howToPlayScreen">✕</button>
+          </div>
+
+          <div class="manual-content">
+            <div class="manual-section">
+              <h3 class="manual-subhead">CONTROLS</h3>
+              <div class="controls-guide-grid">
+                <div class="ctrl-card">
+                  <span class="ctrl-key">WASD / ARROWS</span>
+                  <span class="ctrl-desc">Steer Snake Matrix</span>
+                </div>
+                <div class="ctrl-card">
+                  <span class="ctrl-key">SPACE / SHIFT</span>
+                  <span class="ctrl-desc">Engage Turbo Boost</span>
+                </div>
+                <div class="ctrl-card">
+                  <span class="ctrl-key">P / ESC</span>
+                  <span class="ctrl-desc">Pause / Resume</span>
+                </div>
+                <div class="ctrl-card">
+                  <span class="ctrl-key">TOUCH / D-PAD</span>
+                  <span class="ctrl-desc">Mobile Navigation</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-section">
+              <h3 class="manual-subhead">ENERGY CORES & DATA NODES</h3>
+              <div class="items-guide-grid">
+                <div class="item-card">
+                  <div class="item-icon-orb orb-green"></div>
+                  <div class="item-info">
+                    <strong>Standard Data Bit</strong>
+                    <p>+10 Pts. Grows snake +1 segment.</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-gold"></div>
+                  <div class="item-info">
+                    <strong>Quantum Core (Bonus)</strong>
+                    <p>+50 to +150 Pts. Vanishes when timer ring expires!</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-purple"></div>
+                  <div class="item-info">
+                    <strong>Ghost Phase Core</strong>
+                    <p>Slip through perimeter walls and your own tail for 8 seconds!</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-blue"></div>
+                  <div class="item-info">
+                    <strong>Magnetic Singularity</strong>
+                    <p>Pulls all energy food directly towards your head for 10s.</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-amber"></div>
+                  <div class="item-info">
+                    <strong>Energy Shield Hex</strong>
+                    <p>Deploys a barrier that absorbs 1 lethal collision.</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-pink"></div>
+                  <div class="item-info">
+                    <strong>2X Neural Multiplier</strong>
+                    <p>Doubles all score generation for 12 seconds!</p>
+                  </div>
+                </div>
+                <div class="item-card">
+                  <div class="item-icon-orb orb-teal"></div>
+                  <div class="item-info">
+                    <strong>System Purge / Cleanser</strong>
+                    <p>Trims 2 tail segments and stabilizes speed.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="manual-section">
+              <h3 class="manual-subhead">GAME MODES</h3>
+              <ul class="modes-guide-list">
+                <li><strong>CLASSIC:</strong> Standard endless arcade survival with increasing speed.</li>
+                <li><strong>OBSTACLES:</strong> Navigate around quantum laser pillars and hazardous barriers.</li>
+                <li><strong>CAMPAIGN:</strong> Infiltrate 6 increasingly intense sectors with specific objectives.</li>
+                <li><strong>TIME ATTACK:</strong> Race the clock in 60s. Every core eaten adds bonus seconds!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="modal-footer-btn">
+            <button class="arcade-btn primary-btn" data-close="howToPlayScreen">UNDERSTOOD</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Achievements Screen -->
+      <div class="overlay-screen" id="achievementsScreen">
+        <div class="terminal-card lg-card">
+          <div class="card-header-bar">
+            <h2 class="modal-title neon-magenta">// CYBERNETIC ACHIEVEMENTS</h2>
+            <button class="close-modal-btn" data-close="achievementsScreen">✕</button>
+          </div>
+
+          <div class="achievements-summary">
+            <span>UNLOCKED:</span>
+            <span class="neon-cyan" id="achievementsCount">0 / 12</span>
+          </div>
+
+          <div class="achievements-grid" id="achievementsList">
+            <!-- Dynamically populated -->
+          </div>
+
+          <div class="modal-footer-btn">
+            <button class="arcade-btn primary-btn" data-close="achievementsScreen">RETURN</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Settings Screen -->
+      <div class="overlay-screen" id="settingsScreen">
+        <div class="terminal-card md-card">
+          <div class="card-header-bar">
+            <h2 class="modal-title neon-green">// HARDWARE & AUDIO CONFIG</h2>
+            <button class="close-modal-btn" data-close="settingsScreen">✕</button>
+          </div>
+
+          <div class="settings-content">
+            <div class="setting-row">
+              <label for="settingSoundMute">Sound FX Synthesizer</label>
+              <input type="checkbox" id="settingSoundMute" class="cyber-switch" checked>
+            </div>
+
+            <div class="setting-row">
+              <label for="settingSoundVol">SFX Volume</label>
+              <input type="range" id="settingSoundVol" min="0" max="100" value="75" class="cyber-slider">
+            </div>
+
+            <div class="setting-row">
+              <label for="settingMusicMute">Cyber Synthwave BGM</label>
+              <input type="checkbox" id="settingMusicMute" class="cyber-switch" checked>
+            </div>
+
+            <div class="setting-row">
+              <label for="settingMusicVol">BGM Volume</label>
+              <input type="range" id="settingMusicVol" min="0" max="100" value="60" class="cyber-slider">
+            </div>
+
+            <div class="setting-row">
+              <label for="settingWalls">Perimeter Boundary (Classic)</label>
+              <select id="settingWalls" class="cyber-select">
+                <option value="solid">Lethal Energy Walls</option>
+                <option value="wrap">Wrap-Around Portal Grid</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <label for="settingScanlines">CRT Scanline / Retro Glow</label>
+              <input type="checkbox" id="settingScanlines" class="cyber-switch" checked>
+            </div>
+
+            <div class="setting-row">
+              <label for="settingParticles">Particle FX Density</label>
+              <select id="settingParticles" class="cyber-select">
+                <option value="high">Overclocked (High FX)</option>
+                <option value="medium">Standard</option>
+                <option value="low">Low Power</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <label for="settingDpad">Mobile Virtual D-Pad</label>
+              <select id="settingDpad" class="cyber-select">
+                <option value="auto">Auto (Touch Devices)</option>
+                <option value="always">Always Display</option>
+                <option value="hidden">Hidden (Swipe Only)</option>
+              </select>
+            </div>
+
+            <div class="danger-zone">
+              <button id="btnResetData" class="arcade-btn danger-btn-outline">PURGE ALL SAVED RECORDS</button>
+            </div>
+          </div>
+
+          <div class="modal-footer-btn">
+            <button class="arcade-btn primary-btn" data-close="settingsScreen">SAVE & CLOSE</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Status / Credits Footer -->
+    <footer class="arcade-footer">
+      <div class="footer-item"><span class="neon-cyan">FPS:</span> <span id="fpsCounter">60</span></div>
+      <div class="footer-item"><span class="neon-green">STATUS:</span> <span id="statusIndicator">READY</span></div>
+      <div class="footer-item"><span class="neon-magenta">BUILD:</span> GITHUB-PAGES READY</div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
