@@ -107,7 +107,7 @@ YOUR OBJECTIVE
 
 BUILT WITH CURIOSITY. DESIGNED FOR THE FUTURE.
 
-YASSIN MITKIS
+College Student 18 Years Old Yassin Mitkis
 
 A developer exploring the intersection of programming, creativity and interactive experiences.
 
